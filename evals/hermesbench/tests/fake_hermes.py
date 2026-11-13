@@ -8,6 +8,8 @@ import json, os, sys, time, uuid
 from pathlib import Path
 
 args = sys.argv[1:]
+if args and args[0] == "gateway":  # the runner ensures/stops a per-home gateway around each task
+    sys.exit(0)
 assert args[0] == "chat", args
 opt = lambda k: args[args.index(k) + 1] if k in args else None
 prompt = Path(opt("--query-file")).read_text()

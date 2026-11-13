@@ -3,3 +3,7 @@ __pycache__/
 # repo-wide images/ and logs/ rules would drop task assets
 !assets/*/images/
 !assets/*/logs/
+judge.env
+judge-ca-bundle.pem
+hermes_home_afsbox/
+results.noindex/

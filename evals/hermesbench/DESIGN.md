@@ -31,11 +31,30 @@ HermesBench v0.2 有兩個套件，合計 178 題：
 執行流程：
 
 - **隔離環境**：每題（每次 `--runs`）都從空的 workspace 和獨立的 HERMES_HOME 開始。HERMES_HOME 只從 `~/.hermes` 複製 config.yaml、.env、auth.json。
-- **執行 session**：每個 session 用 `hermes chat --query-file … --format stream-json --yolo --accept-hooks` 執行。
+- **執行 session**：每個 session 用 `hermes chat --query-file … --format stream-json --yolo --accept-hooks` 執行（gateway 模式的細節見下一節）。
   - 同一對話的後續 session 用 `--resume` 接續。
   - `new_session: true` 會開新對話。
 - **逐字稿轉換**：stream-json 事件會轉成 PinchBench 的逐字稿格式，所以 PinchBench 的評分器不用修改就能直接用。
 - **先跑 sanity**：`task_sanity` 最先執行。它得 0 分就中止整次執行，和 PinchBench 的做法一樣。
+
+### Gateway 模式的 Hermes（v0.22 起）
+
+新版的 `hermes chat` 不再在自己的程序裡跑 agent，而是交給該 HERMES_HOME 專屬的 gateway 執行。runner 為此做了下面這些調整：
+
+- **時間預算**：gateway chat 不接受 `--run-budget`，所以每題的時間預算改寫到 config 的 `agent.run_budget_seconds`。
+- **啟動時間不計入**：計時開始前先執行 `hermes gateway ensure`，因此依賴安裝和暖機的 20–40 秒不會算進 agent 的時間。
+- **結束時清理**：每題結束後執行 `hermes gateway stop`。
+- **避免衝突**：複製 `.env` 時去掉 `TELEGRAM_`、`API_SERVER_`、`SLACK_`、`DISCORD_` 開頭的設定，避免和使用者自己的 gateway 搶用 bot token 或 port 8642。
+
+自訂 OpenAI-compatible 端點的用法：
+
+1. **另建 template home**：準備一個 benchmark 專用的 template home（`--hermes-home-template`，不要放進 git），在它的 config 中設定：
+   - `model.provider: custom`、`base_url`、`api_key`
+   - `auxiliary.*` 改成 `main`
+2. **模型名稱**：用 `-m custom:<model>` 指定。
+3. **reasoning_effort**：端點有限制時（例如 DeepSeek V4.1 不接受 medium），要同時設定 `agent.reasoning_effort` 和 `--reasoning`。
+4. **Judge 設定**：使用 `HB_JUDGE_BASE_URL`、`HB_JUDGE_API_KEY`、`HB_JUDGE_MAX_TOKENS`。推理模型當 judge 時要調高 `HB_JUDGE_MAX_TOKENS`。
+5. **macOS**：輸出目錄名稱用 `.noindex` 結尾，避免 Spotlight 索引拖慢 gateway 啟動。
 
 ## 和 OpenClaw 跑 PinchBench 的差異
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import logging
 import statistics
 import sys
@@ -168,7 +169,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     template = template if template.exists() else None
     if template is None:
         logger.warning("No Hermes home template found; tasks run with an empty config (set --hermes-home-template).")
-    run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + args.model.replace("/", "_")
+    run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + re.sub(r"[^A-Za-z0-9._-]", "_", args.model)  # no ":" in paths
     out_dir = Path(args.output_dir) / run_id
     out_dir.mkdir(parents=True, exist_ok=True)
     cache = JudgeCache(Path(args.output_dir) / ".judge_cache.json")

@@ -51,8 +51,14 @@ Each task (and each `--runs` repetition) gets an empty workspace and an empty HE
 
 ```
 hermes chat --query-file PROMPT --format stream-json --yolo --accept-hooks \
-            --max-turns N --run-budget SECONDS -m MODEL [--provider P] [-t TOOLSETS] [--resume SID]
+            --max-turns N -m MODEL [--provider P] [-t TOOLSETS] [--reasoning L] [--resume SID]
 ```
+
+- **Gateway-mode Hermes** (v0.22+): `hermes chat` runs each session through a gateway owned by the task's HERMES_HOME.
+  - The task budget is written to `agent.run_budget_seconds` in the task's config, because gateway chat refuses `--run-budget`.
+  - The runner calls `hermes gateway ensure` before the task clock starts, so gateway startup (dependency install, warm-up) is not charged to the agent.
+  - It calls `hermes gateway stop` when the task ends.
+  - `TELEGRAM_*`, `API_SERVER_*`, `SLACK_*` and `DISCORD_*` lines are dropped from the seeded `.env`. Otherwise each task's gateway would collide with your own running gateway (bot token or port already in use) and exit at startup.
 
 - **The prompt** is exactly the text PinchBench sends to OpenClaw. It is parsed with PinchBench's own section parser.
 - **Multi-session tasks** (`sessions:`) continue the same conversation with `--resume`.
@@ -60,6 +66,32 @@ hermes chat --query-file PROMPT --format stream-json --yolo --accept-hooks \
   - Memory, skills, session history and cron jobs persist in HERMES_HOME.
 - **stream-json events** are normalized into PinchBench's transcript shape. PinchBench's graders therefore run unmodified.
 - **`task_sanity` runs first.** If it scores 0, the run aborts, the same as PinchBench. Pass `--no-fail-fast` to override.
+
+### Running against a custom OpenAI-compatible endpoint
+
+To benchmark a model served from your own endpoint without touching `~/.hermes`, build a benchmark-only template home. Keep it out of git, because it holds the API key.
+
+1. Create a directory such as `hermes_home_custom/` containing `config.yaml`, `.env` and `auth.json`, usually copied from `~/.hermes`.
+2. In its `config.yaml`, set:
+   ```yaml
+   model:
+     provider: custom
+     default: org/model
+     base_url: https://host/v1
+     api_key: ...
+   ```
+3. Point any `auxiliary.*` tasks that name another provider at `provider: main`.
+4. Pass the model as `-m custom:org/model`. Without the `custom:` prefix, Hermes strips `org/` from the name.
+5. Omit `--provider`.
+6. If the endpoint restricts `reasoning_effort` values, also set `agent.reasoning_effort` and pass `--reasoning`. For example, DeepSeek V4.1 rejects `medium`.
+7. If the endpoint uses a private CA, export `SSL_CERT_FILE` pointing at a bundle that includes that CA plus the public roots. Verification stays on.
+
+```bash
+python scripts/benchmark.py --model custom:org/model --reasoning high \
+    --hermes-home-template "$PWD/hermes_home_custom" --output-dir "$PWD/results.noindex" ...
+```
+
+Pass absolute paths to `--hermes-home-template` and `--output-dir`. On macOS, an output directory ending in `.noindex` keeps Spotlight from indexing every task's HERMES_HOME; under load, that indexing can starve gateway startup.
 
 ### What differs from running PinchBench under OpenClaw
 
@@ -82,6 +114,9 @@ These are listed in `tasks/pinchbench/hermes_overrides.yaml` and shown by `--lis
   - The score is the judge's `total`, the arithmetic mean of the rubric criteria.
   - Default judge: `openrouter/anthropic/claude-haiku-4.5`.
   - Other judges: `anthropic/…`, `openai/…`, `kilo/…`, `claude` (CLI), or any OpenAI-compatible endpoint via `HB_JUDGE_BASE_URL` + `HB_JUDGE_API_KEY`.
+  - The `--judge` value is sent as the model name.
+  - Set `HB_JUDGE_MAX_TOKENS` (default 2048) higher for reasoning judges. Their reasoning tokens count against the completion budget, and at 2048 the verdict gets cut off.
+  - The judge reads its key from the environment only, not from `~/.hermes/.env`.
 - **hybrid**: `grading_weights` mix of the two (default 0.5 / 0.5).
 - **Totals**: every task is worth 1.0.
   - Suite score = earned / possible.

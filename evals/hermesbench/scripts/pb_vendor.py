@@ -1,6 +1,9 @@
 """Vendored, unmodified grading/judge functions from PinchBench (github.com/pinchbench/skill, MIT,
 commit 819384a). HermesBench grades every task through these so scores match PinchBench exactly.
-Do not edit by hand; regenerate from upstream instead."""
+Do not edit by hand; regenerate from upstream instead.
+
+One local deviation from upstream: `_judge_via_openai_compat` reads `max_completion_tokens` from
+HB_JUDGE_MAX_TOKENS (default 2048, upstream's value) so reasoning judges are not cut off."""
 from __future__ import annotations
 
 import json
@@ -459,7 +462,7 @@ def _judge_via_openai_compat(
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.0,
-        "max_completion_tokens": 2048,
+        "max_completion_tokens": int(os.environ.get("HB_JUDGE_MAX_TOKENS", "2048")),  # reasoning judges need more
     }).encode("utf-8")
 
     headers = {

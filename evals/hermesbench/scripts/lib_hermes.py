@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -92,6 +93,13 @@ def prepare_hermes_home(task: Task, run_dir: Path, assets_dir: Path, template: O
             src = template / name
             if src.exists():
                 shutil.copyfile(src, home / name)
+        # `hermes chat` now runs via a per-HERMES_HOME gateway; messaging/api_server creds
+        # copied from the real home make that gateway hit fatal startup conflicts (bot token / port in use).
+        envf = home / ".env"
+        if envf.exists():
+            keep = [l for l in envf.read_text(encoding="utf-8").splitlines()
+                    if not re.match(r"\s*(export\s+)?(TELEGRAM_|API_SERVER_|SLACK_|DISCORD_)", l)]
+            envf.write_text("\n".join(keep) + "\n", encoding="utf-8")
         if (home / "config.yaml").exists():
             config = yaml.safe_load((home / "config.yaml").read_text(encoding="utf-8")) or {}
     # Benchmark baseline: no approval prompts, no cross-task state, memory on (default).
@@ -177,7 +185,7 @@ def build_command(hermes_cmd: str, prompt_file: Path, *, model: str, provider: O
         # session_recall tasks unsolvable. The per-task HERMES_HOME already keeps runs out of the
         # user's own session list.
         "chat", "--query-file", str(prompt_file), "--format", "stream-json", "--yolo", "--accept-hooks",
-        "--max-turns", str(max_turns), "--run-budget", str(int(run_budget))]
+        "--max-turns", str(max_turns)]  # gateway chat refuses --run-budget
     if model:
         cmd += ["-m", model]
     if provider:
@@ -219,12 +227,21 @@ def _execute(task: Task, *, run_dir: Path, assets_dir: Path, hermes_cmd: str, mo
              reasoning: Optional[str], extra_config: Optional[Dict[str, Any]],
              extra_env: Optional[Dict[str, str]]) -> Dict[str, Any]:
     workspace = prepare_workspace(task, run_dir, assets_dir)
+    # --run-budget moved to config (agent.run_budget_seconds) in gateway-mode Hermes
+    extra_config = deep_merge(extra_config or {}, {"agent": {"run_budget_seconds": int(task.timeout_seconds * timeout_multiplier)}})
     home = prepare_hermes_home(task, run_dir, assets_dir, template_home, extra_config)
     env = dict(os.environ)
     env.update(extra_env or {})
     env["HERMES_HOME"] = str(home)
     env.pop("HERMES_PROFILE", None)
 
+    # start this home's gateway (deps install + warm-up) BEFORE the task clock starts, so
+    # gateway startup does not eat the agent's budget (agent.run_budget_seconds only starts once it is ready).
+    try:
+        subprocess.run(shlex.split(hermes_cmd) + ["gateway", "ensure", "--timeout", "240"], env=env, cwd=workspace,
+                       stdin=subprocess.DEVNULL, capture_output=True, timeout=300)
+    except Exception as exc:
+        logger.warning("%s: gateway ensure failed: %s", task.task_id, exc)
     budget = task.timeout_seconds * timeout_multiplier
     deadline = time.time() + budget
     transcript: List[Dict[str, Any]] = []
@@ -287,6 +304,11 @@ def _execute(task: Task, *, run_dir: Path, assets_dir: Path, hermes_cmd: str, mo
         if rc not in (0, None) and status == "success":
             status = "error"
     raw_log.close()
+    try:  # stop this task's gateway so it does not keep running/leaking
+        subprocess.run(shlex.split(hermes_cmd) + ["gateway", "stop"], env=env, cwd=workspace,
+                       stdin=subprocess.DEVNULL, capture_output=True, timeout=60)
+    except Exception:
+        pass
     (run_dir / "transcript.json").write_text(json.dumps(transcript, ensure_ascii=False, indent=1), encoding="utf-8")
     return {"task_id": task.task_id, "status": status, "workspace": str(workspace), "hermes_home": str(home),
             "transcript": transcript, "sessions": session_results, "usage": usage, "tool_calls": tool_calls,
