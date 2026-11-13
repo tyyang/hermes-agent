@@ -106,6 +106,36 @@ hermes 套件也用同一套評分，另外有三項擴充：
 - 可以使用 `memory_text`、`find_skills`、`cron_jobs` 等輔助函式。
 - 可以回傳 `_weights` 加權。
 
+### 已知的 grader 誤判（未修正）
+
+以下是 2026 年 11 月用 deepseek-v4-flash 在 Hermes v0.22 上實測時發現的。為了讓分數能和 PinchBench 以及先前的結果比較，grader 維持原樣沒有修改；解讀分數時，這些項目要視為「可能是 grader 誤判」，不一定是模型的錯。
+
+**1. 經由 `execute_code` 呼叫的工具，`used_tool()` 偵測不到**
+
+Hermes 的程式沙盒可以 `from hermes_tools import web_search` 等方式呼叫工具，但 transcript 裡只會留下一筆 `execute_code`。
+
+| 題目 | 影響的檢查項 | 說明 |
+|---|---|---|
+| hermes/task_web_rfc_lookup | `web_used` | 答案全對卻只拿 0.83；agent 直接呼叫 web_search 時拿 1.00 |
+| hermes/task_research_brief | `web_used` | 同一行檢查，同樣會受影響 |
+| hermes/task_vision_chart_values | `vision_used` 的 `read_file` 部分 | 只有透過 execute_code 呼叫 read_file 時才會受影響 |
+| pinchbench/task_market_research | `used_web_search` | 該題自己的檢查只看工具名稱和 command 參數 |
+
+**2. regex 只接受單一寫法**
+
+| 題目 | 影響的檢查項 | agent 實際寫法（內容正確） | grader 要求 |
+|---|---|---|---|
+| hermes/task_todo_multistep | `summary` | `Engineers starting: 2` | `2 engineers` |
+| pinchbench/task_meeting_council_votes | `summary_count` | `Total motions voted on: 41` | 數字要在 motion 前面 |
+| pinchbench/task_calendar | `attendee_present` | 依 RFC 5545 折行的 ATTENDEE | 地址在同一行、沒有折行 |
+
+**建議修法（尚未套用）**
+
+- **`used_tool()`**：除了比對工具名稱，也檢查 `execute_code` 的 `arguments.code` 是否呼叫或 import 了該工具。
+- **task_todo_multistep 的 regex**：改成兩種語序都接受。修正後，實測那一題會從 0.71 變成 0.86。
+
+PinchBench 的題目檔刻意與上游保持完全一致，所以只在本文件記錄，不修改題目檔。
+
 ## Hermes 套件題目（31 題）
 
 | 類別 | 題數 | 題目與陷阱 |

@@ -42,6 +42,8 @@ def grade(transcript, workspace_path):
     s["quic"] = check("quic_transport", 9000, "2021-05")
     srcs = d.get("sources") if isinstance(d.get("sources"), list) else []
     s["sources"] = 1.0 if any(str(u).startswith("http") for u in srcs) else 0.0
+    # NOTE (known issue): web tools called inside execute_code (`from hermes_tools import web_search`) are
+    # not seen by used_tool(), so web_used can be 0 for a correct run. See README "Known grader false negatives".
     s["web_used"] = 1.0 if used_tool(transcript, "web_search", "web_extract", "browser_exec") else 0.0
     return s
 ```

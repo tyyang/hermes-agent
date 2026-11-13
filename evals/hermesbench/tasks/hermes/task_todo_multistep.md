@@ -60,6 +60,8 @@ def grade(transcript, workspace_path):
     emails = [l.strip() for l in read_text(ob / "emails.txt").splitlines() if l.strip()]
     s["emails"] = 1.0 if emails == sorted(["mei.lin@example.com", "omar.h@example.com", "sofia.rossi@example.com"]) else 0.0
     summ = read_text(ob / "SUMMARY.md").lower()
+    # NOTE (known issue): only the "2 engineers" word order matches; "Engineers starting: 2" scores 0.
+    # See README "Known grader false negatives".
     s["summary"] = 1.0 if re.search(r"(2|two)\s+engineers?", summ) and re.search(r"(1|one)\s+designers?", summ) else 0.0
     s["todo_used"] = 1.0 if used_tool(transcript, "todo_list") else 0.0
     return s

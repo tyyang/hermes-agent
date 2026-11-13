@@ -57,6 +57,9 @@ def tool_calls(transcript: List[Dict[str, Any]], session: Optional[int] = None) 
 
 
 def used_tool(transcript, *names: str, session: Optional[int] = None) -> bool:
+    # Known limitation (README "Known grader false negatives"): only direct tool calls count. A tool
+    # invoked from execute_code via `from hermes_tools import web_search` shows up as `execute_code`,
+    # so web_used-style checks can miss it. Left unchanged to keep scores comparable across runs.
     wanted = set(names)
     return any(c["name"] in wanted for c in tool_calls(transcript, session))
 

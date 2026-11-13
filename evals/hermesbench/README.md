@@ -131,6 +131,33 @@ The Hermes suite uses the same scoring. Its graders may also:
 - use the pre-imported helpers `tool_calls`, `used_tool`, `final_text(transcript, session=i)`, `memory_text(ctx)`, `find_skills(ctx)`, `cron_jobs(ctx)`, `normalize_cron`, `load_json`, `read_text`, `file_sha`, `num_close`;
 - return `_weights` for a weighted mean.
 
+### Known grader false negatives (not fixed)
+
+These were observed with deepseek-v4-flash on Hermes v0.22 (November 2026). The graders are left as-is, so scores stay comparable with PinchBench and earlier HermesBench runs. When reading results, treat these items as possible grader misses rather than model failures.
+
+**1. Tools called from inside `execute_code` are invisible to `used_tool()` (`scripts/lib_grading.py`).**
+
+Hermes' code sandbox can call `web_search`, `web_extract`, `read_file`, `write_file`, `search_files`, `patch` and `terminal` via `from hermes_tools import ...`. The transcript then shows only an `execute_code` call.
+
+| Task | Check | What happened |
+|---|---|---|
+| hermes/`task_web_rfc_lookup` | `web_used` | Every answer was correct, but the task scored 0.83. It scored 1.00 when the agent called `web_search` directly. |
+| hermes/`task_research_brief` | `web_used` | Same check, same exposure. |
+| hermes/`task_vision_chart_values` | `vision_used` | Exposed only when `read_file` is called through `execute_code`. |
+| pinchbench/`task_market_research` | `used_web_search` | Its own check looks only at tool names and `command` arguments. |
+
+Possible fix: also scan `execute_code` arguments, e.g. `\bweb_search\s*\(` in `arguments.code`.
+
+**2. Regexes that accept only one wording.**
+
+| Task | Check | Agent wrote (correct) | Grader requires |
+|---|---|---|---|
+| hermes/`task_todo_multistep` | `summary` | `Engineers starting: 2` | `2 engineers` |
+| pinchbench/`task_meeting_council_votes` | `summary_count` | `Total motions voted on: 41` | the number before the word `motion` |
+| pinchbench/`task_calendar` | `attendee_present` | an `ATTENDEE` line folded per RFC 5545 | the address on a single, unfolded line |
+
+Possible fix for `task_todo_multistep`: accept both word orders, e.g. `(2|two)\s+engineers?|engineers?\b[^\n\d]*?(2|two)\b`. With that, the observed run would score 0.86 instead of 0.71. The PinchBench task files are deliberately left byte-identical to upstream.
+
 ## Hermes suite (31 tasks)
 
 | Category | Tasks | What it tests |
