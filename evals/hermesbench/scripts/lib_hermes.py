@@ -110,6 +110,19 @@ def prepare_hermes_home(task: Task, run_dir: Path, assets_dir: Path, template: O
     return home
 
 
+RUNTIME_DIRS = ("installs", "cache")
+
+
+def prune_hermes_home(home: Path) -> None:
+    """Drop the per-home dependency runtime (~1.2 GB/task) once grading has read the home.
+
+    Each task's fresh HERMES_HOME installs its own runtime under installs/ and a uv cache under
+    cache/; neither is task state, so graders and later inspection only need what remains.
+    """
+    for name in RUNTIME_DIRS:
+        shutil.rmtree(home / name, ignore_errors=True)
+
+
 class StreamParser:
     """Turn stream-json lines into PinchBench-shaped transcript events."""
 

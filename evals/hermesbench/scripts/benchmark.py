@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib_grading import DEFAULT_JUDGE_MODEL, JudgeCache, grade_task  # noqa: E402
-from lib_hermes import execute_task  # noqa: E402
+from lib_hermes import execute_task, prune_hermes_home  # noqa: E402
 from lib_tasks import SUITES, Task, TaskLoader  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,6 +57,8 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p.add_argument("--no-fail-fast", action="store_true",
                    help="Keep going even if task_sanity scores 0 (PinchBench aborts the run)")
     p.add_argument("--no-judge", action="store_true", help="Skip LLM judging (hybrid tasks use automated part)")
+    p.add_argument("--keep-runtime", action="store_true",
+                   help="Keep each task's HERMES_HOME installs/ and cache/ (~1.2 GB/task) after grading")
     p.add_argument("--output-dir", default=str(ROOT / "results"))
     p.add_argument("--list", action="store_true", help="List the selected tasks and exit")
     p.add_argument("-v", "--verbose", action="store_true")
@@ -204,6 +206,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                         ex["usage"].get("total_tokens"), ex["tool_calls"], g.notes[:120])
             run_dir.mkdir(parents=True, exist_ok=True)
             (run_dir / "grade.json").write_text(json.dumps(g.to_dict(), indent=2), encoding="utf-8")
+            if ex["hermes_home"] and not args.keep_runtime:
+                prune_hermes_home(Path(ex["hermes_home"]))
             runs.append({"grade": g.to_dict(), "status": ex["status"], "usage": ex["usage"],
                          "tool_calls": ex["tool_calls"], "tool_errors": ex["tool_errors"],
                          "execution_time": ex["execution_time"]})
