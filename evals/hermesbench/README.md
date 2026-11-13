@@ -67,6 +67,8 @@ hermes chat --query-file PROMPT --format stream-json --yolo --accept-hooks \
 - **stream-json events** are normalized into PinchBench's transcript shape. PinchBench's graders therefore run unmodified.
 - **`task_sanity` runs first.** If it scores 0, the run aborts, the same as PinchBench. Pass `--no-fail-fast` to override.
 
+- **No secrets left in results.** When a task finishes (including on timeout or error), the runner deletes `.env` and `auth.json` from the task's HERMES_HOME. It also replaces `api_key`/`token`/`secret` values in its `config.yaml` with `REDACTED`. Graders never read those files, so results stay re-gradable. To keep the files for debugging, set `HB_KEEP_SECRETS=1`.
+
 ### Running against a custom OpenAI-compatible endpoint
 
 To benchmark a model served from your own endpoint without touching `~/.hermes`, build a benchmark-only template home. Keep it out of git, because it holds the API key.

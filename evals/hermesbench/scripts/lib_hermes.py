@@ -199,6 +199,31 @@ def build_command(hermes_cmd: str, prompt_file: Path, *, model: str, provider: O
     return cmd
 
 
+def _redact_keys(node: Any) -> Any:
+    if isinstance(node, dict):
+        return {k: ("REDACTED" if isinstance(v, str) and v and ("api_key" in str(k).lower() or str(k).lower() in ("token", "secret"))
+                    else _redact_keys(v)) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_redact_keys(v) for v in node]
+    return node
+
+
+def scrub_home_secrets(home: Path) -> None:
+    """Drop the seeded credentials from a finished task's HERMES_HOME so result dirs hold no secrets.
+
+    Graders never read .env/auth.json (lib_grading skips them), so results stay re-gradable.
+    """
+    for name in (".env", "auth.json"):
+        (home / name).unlink(missing_ok=True)
+    cfg = home / "config.yaml"
+    if cfg.exists():
+        try:
+            data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
+            cfg.write_text(yaml.safe_dump(_redact_keys(data), sort_keys=False, allow_unicode=True), encoding="utf-8")
+        except (OSError, yaml.YAMLError) as exc:
+            logger.warning("could not redact %s: %s", cfg, exc)
+
+
 def execute_task(task: Task, *, run_dir: Path, hermes_cmd: str, model: str,
                  provider: Optional[str], template_home: Optional[Path], timeout_multiplier: float = 1.0,
                  reasoning: Optional[str] = None, extra_config: Optional[Dict[str, Any]] = None,
@@ -220,6 +245,8 @@ def execute_task(task: Task, *, run_dir: Path, hermes_cmd: str, model: str,
     finally:
         if fws_env is not None:
             stop_fws(fws_env)
+        if os.environ.get("HB_KEEP_SECRETS") != "1":
+            scrub_home_secrets(run_dir / "hermes_home")
 
 
 def _execute(task: Task, *, run_dir: Path, assets_dir: Path, hermes_cmd: str, model: str,

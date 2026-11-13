@@ -46,6 +46,8 @@ HermesBench v0.2 有兩個套件，合計 178 題：
 - **結束時清理**：每題結束後執行 `hermes gateway stop`。
 - **避免衝突**：複製 `.env` 時去掉 `TELEGRAM_`、`API_SERVER_`、`SLACK_`、`DISCORD_` 開頭的設定，避免和使用者自己的 gateway 搶用 bot token 或 port 8642。
 
+- **結果不留機密**：每題結束後（包括 timeout 或錯誤），runner 會刪除該題 HERMES_HOME 裡的 `.env` 和 `auth.json`，並把 `config.yaml` 中的 api_key、token、secret 值改成 `REDACTED`。grader 本來就不讀這些檔案，所以仍可重新評分。需要保留來除錯時，可設定 `HB_KEEP_SECRETS=1`。
+
 自訂 OpenAI-compatible 端點的用法：
 
 1. **另建 template home**：準備一個 benchmark 專用的 template home（`--hermes-home-template`，不要放進 git），在它的 config 中設定：
