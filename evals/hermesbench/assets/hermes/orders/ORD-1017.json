@@ -1,0 +1,22 @@
+{
+  "id": "ORD-1017",
+  "customer": "wayne",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S23",
+      "qty": 4,
+      "price": 30.57
+    },
+    {
+      "sku": "S17",
+      "qty": 1,
+      "price": 43.5
+    },
+    {
+      "sku": "S15",
+      "qty": 2,
+      "price": 63.7
+    }
+  ]
+}

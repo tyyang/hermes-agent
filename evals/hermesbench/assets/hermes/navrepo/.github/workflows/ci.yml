@@ -1,0 +1,9 @@
+name: ci
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      HB_NET_MAX_BACKOFF: '5'  # keep CI fast
+    steps:
+      - run: pytest

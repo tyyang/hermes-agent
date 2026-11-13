@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1005",
+  "customer": "initech",
+  "status": "cancelled",
+  "items": [
+    {
+      "sku": "S05",
+      "qty": 4,
+      "price": 93.22
+    },
+    {
+      "sku": "S22",
+      "qty": 4,
+      "price": 83.16
+    },
+    {
+      "sku": "S02",
+      "qty": 3,
+      "price": 6.05
+    },
+    {
+      "sku": "S00",
+      "qty": 3,
+      "price": 35.06
+    }
+  ]
+}

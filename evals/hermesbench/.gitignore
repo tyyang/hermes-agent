@@ -1,0 +1,5 @@
+results/
+__pycache__/
+# repo-wide images/ and logs/ rules would drop task assets
+!assets/*/images/
+!assets/*/logs/

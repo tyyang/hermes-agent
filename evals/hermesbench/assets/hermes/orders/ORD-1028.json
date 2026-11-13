@@ -1,0 +1,22 @@
+{
+  "id": "ORD-1028",
+  "customer": "umbrella",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S08",
+      "qty": 4,
+      "price": 11.12
+    },
+    {
+      "sku": "S13",
+      "qty": 1,
+      "price": 18.72
+    },
+    {
+      "sku": "S26",
+      "qty": 2,
+      "price": 46.54
+    }
+  ]
+}

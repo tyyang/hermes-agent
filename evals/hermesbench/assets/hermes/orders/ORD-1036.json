@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1036",
+  "customer": "initech",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S13",
+      "qty": 4,
+      "price": 10.84
+    },
+    {
+      "sku": "S12",
+      "qty": 4,
+      "price": 61.05
+    },
+    {
+      "sku": "S16",
+      "qty": 2,
+      "price": 55.68
+    },
+    {
+      "sku": "S15",
+      "qty": 1,
+      "price": 20.52
+    }
+  ]
+}

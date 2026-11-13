@@ -1,0 +1,22 @@
+{
+  "id": "ORD-1003",
+  "customer": "wonka",
+  "status": "cancelled",
+  "items": [
+    {
+      "sku": "S12",
+      "qty": 2,
+      "price": 22.39
+    },
+    {
+      "sku": "S13",
+      "qty": 2,
+      "price": 32.31
+    },
+    {
+      "sku": "S01",
+      "qty": 4,
+      "price": 71.44
+    }
+  ]
+}

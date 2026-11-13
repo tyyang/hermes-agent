@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1007",
+  "customer": "stark",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S04",
+      "qty": 3,
+      "price": 38.89
+    }
+  ]
+}

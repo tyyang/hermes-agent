@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1026",
+  "customer": "wonka",
+  "status": "returned",
+  "items": [
+    {
+      "sku": "S02",
+      "qty": 4,
+      "price": 82.52
+    },
+    {
+      "sku": "S20",
+      "qty": 1,
+      "price": 24.29
+    }
+  ]
+}

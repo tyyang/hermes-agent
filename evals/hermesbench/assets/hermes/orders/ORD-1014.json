@@ -1,0 +1,22 @@
+{
+  "id": "ORD-1014",
+  "customer": "hooli",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S21",
+      "qty": 2,
+      "price": 46.8
+    },
+    {
+      "sku": "S04",
+      "qty": 4,
+      "price": 65.71
+    },
+    {
+      "sku": "S24",
+      "qty": 3,
+      "price": 86.35
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1034",
+  "customer": "acme",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S04",
+      "qty": 3,
+      "price": 46.71
+    },
+    {
+      "sku": "S26",
+      "qty": 2,
+      "price": 40.27
+    },
+    {
+      "sku": "S15",
+      "qty": 1,
+      "price": 76.26
+    },
+    {
+      "sku": "S26",
+      "qty": 3,
+      "price": 68.61
+    }
+  ]
+}

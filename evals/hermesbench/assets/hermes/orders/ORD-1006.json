@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1006",
+  "customer": "acme",
+  "status": "cancelled",
+  "items": [
+    {
+      "sku": "S05",
+      "qty": 1,
+      "price": 75.44
+    },
+    {
+      "sku": "S26",
+      "qty": 1,
+      "price": 22.66
+    }
+  ]
+}

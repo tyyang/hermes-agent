@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1048",
+  "customer": "globex",
+  "status": "cancelled",
+  "items": [
+    {
+      "sku": "S08",
+      "qty": 4,
+      "price": 90.12
+    },
+    {
+      "sku": "S28",
+      "qty": 2,
+      "price": 81.57
+    },
+    {
+      "sku": "S20",
+      "qty": 2,
+      "price": 30.31
+    },
+    {
+      "sku": "S06",
+      "qty": 1,
+      "price": 54.55
+    }
+  ]
+}

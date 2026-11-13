@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1058",
+  "customer": "stark",
+  "status": "pending",
+  "items": [
+    {
+      "sku": "S11",
+      "qty": 4,
+      "price": 53.58
+    },
+    {
+      "sku": "S22",
+      "qty": 3,
+      "price": 22.16
+    },
+    {
+      "sku": "S07",
+      "qty": 4,
+      "price": 29.8
+    },
+    {
+      "sku": "S03",
+      "qty": 1,
+      "price": 41.89
+    }
+  ]
+}

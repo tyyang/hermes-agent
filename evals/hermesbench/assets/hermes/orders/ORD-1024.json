@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1024",
+  "customer": "umbrella",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S06",
+      "qty": 3,
+      "price": 14.11
+    }
+  ]
+}

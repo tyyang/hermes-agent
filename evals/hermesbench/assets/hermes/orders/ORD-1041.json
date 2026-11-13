@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1041",
+  "customer": "stark",
+  "status": "returned",
+  "items": [
+    {
+      "sku": "S02",
+      "qty": 1,
+      "price": 35.32
+    },
+    {
+      "sku": "S00",
+      "qty": 1,
+      "price": 53.65
+    }
+  ]
+}

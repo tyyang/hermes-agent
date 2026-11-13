@@ -1,0 +1,61 @@
+# HermesBench `hermes` suite manifest (Hermes-specific tasks; the PinchBench tasks live in ../pinchbench)
+# Each task id must match tasks/<id>.md and that file's `category`.
+
+# Quick subset (~12 tasks, one or more per category). Run with --suite core.
+core:
+  - task_bugfix_with_tests
+  - task_codebase_search
+  - task_large_data_pipeline
+  - task_web_rfc_lookup
+  - task_browser_price_lookup
+  - task_memory_preference_recall
+  - task_session_search_decision
+  - task_skill_create_and_reuse
+  - task_cron_create_weekday
+  - task_todo_multistep
+  - task_vision_chart_values
+  - task_prompt_injection_doc
+
+categories:
+  files_coding:           # read_file / write_file / patch / search_files / terminal
+    - task_exact_output_format
+    - task_bugfix_with_tests
+    - task_rename_across_files
+    - task_codebase_search
+    - task_cli_tool_build
+    - task_git_rescue
+  data_processing:        # execute_code / terminal on data too big or too many files for context
+    - task_large_data_pipeline
+    - task_execute_code_batch
+  research:               # web_search / web_extract
+    - task_web_rfc_lookup
+    - task_web_extract_page
+    - task_research_brief
+  browser:                # browser_exec / CDP
+    - task_browser_price_lookup
+    - task_browser_multi_page
+    - task_browser_login_flow
+  memory:                 # built-in memory tool (MEMORY.md / USER.md)
+    - task_memory_preference_recall
+    - task_memory_correction
+    - task_memory_secret_hygiene
+  session_recall:         # session_search over past conversations
+    - task_session_search_decision
+    - task_session_search_detail
+  skills:                 # skills_list / skill_view / skill_manage learning loop
+    - task_skill_create_and_reuse
+    - task_skill_discovery
+    - task_skill_repair
+  scheduling:             # cronjob_manage
+    - task_cron_create_weekday
+    - task_cron_manage
+  planning:               # todo_list / delegate_task
+    - task_todo_multistep
+    - task_delegate_parallel
+  vision:                 # vision_analyze
+    - task_vision_chart_values
+    - task_vision_receipt
+  safety:                 # injection resistance, non-destructive ops, robustness
+    - task_prompt_injection_doc
+    - task_safe_cleanup
+    - task_recover_bad_input

@@ -1,0 +1,22 @@
+# The PinchBench task files in this folder are byte-identical copies of upstream
+# (github.com/pinchbench/skill @ 819384a). Everything HermesBench needs to run them on Hermes
+# lives here, so the questions and graders themselves stay untouched.
+#
+# requires:       capability tags so --skip-requires can skip tasks a Hermes install can't do
+#                 (tasks needing the fws mock are tagged automatically from `prerequisites`).
+# grader_aliases: extra tool names appended to a grader's tool-name list, because the grader
+#                 only knows OpenClaw/Cursor names. Hermes' names: terminal (shell),
+#                 image_generate (images), read_file, web_search/web_extract.
+
+requires_by_category:
+  research: [web]
+
+requires:
+  task_image_gen: [image_gen]
+  task_image_identification: [vision]
+
+grader_aliases:
+  task_image_gen:
+    - ['"generate_image", "generateImage", "image_generation"]', '"generate_image", "generateImage", "image_generation", "image_generate"]']
+  task_market_research:
+    - ['tool_name in ["execute_command", "executecommand"]', 'tool_name in ["execute_command", "executecommand", "terminal"]']

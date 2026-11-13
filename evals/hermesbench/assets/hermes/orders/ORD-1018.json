@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1018",
+  "customer": "wayne",
+  "status": "cancelled",
+  "items": [
+    {
+      "sku": "S03",
+      "qty": 3,
+      "price": 51.56
+    },
+    {
+      "sku": "S22",
+      "qty": 4,
+      "price": 26.52
+    },
+    {
+      "sku": "S20",
+      "qty": 3,
+      "price": 78.3
+    },
+    {
+      "sku": "S28",
+      "qty": 1,
+      "price": 92.48
+    }
+  ]
+}

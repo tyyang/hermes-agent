@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1011",
+  "customer": "globex",
+  "status": "pending",
+  "items": [
+    {
+      "sku": "S12",
+      "qty": 1,
+      "price": 93.13
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1053",
+  "customer": "wayne",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S21",
+      "qty": 2,
+      "price": 41.46
+    },
+    {
+      "sku": "S10",
+      "qty": 2,
+      "price": 49.23
+    },
+    {
+      "sku": "S08",
+      "qty": 1,
+      "price": 42.73
+    },
+    {
+      "sku": "S21",
+      "qty": 3,
+      "price": 5.43
+    }
+  ]
+}

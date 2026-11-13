@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1043",
+  "customer": "stark",
+  "status": "returned",
+  "items": [
+    {
+      "sku": "S04",
+      "qty": 4,
+      "price": 9.12
+    }
+  ]
+}

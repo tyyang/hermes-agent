@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1052",
+  "customer": "hooli",
+  "status": "returned",
+  "items": [
+    {
+      "sku": "S05",
+      "qty": 1,
+      "price": 65.94
+    },
+    {
+      "sku": "S28",
+      "qty": 4,
+      "price": 78.35
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1050",
+  "customer": "globex",
+  "status": "returned",
+  "items": [
+    {
+      "sku": "S08",
+      "qty": 2,
+      "price": 43.38
+    },
+    {
+      "sku": "S07",
+      "qty": 2,
+      "price": 38.09
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "ORD-1054",
+  "customer": "wonka",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S29",
+      "qty": 1,
+      "price": 83.55
+    },
+    {
+      "sku": "S24",
+      "qty": 1,
+      "price": 56.92
+    },
+    {
+      "sku": "S17",
+      "qty": 4,
+      "price": 49.79
+    },
+    {
+      "sku": "S09",
+      "qty": 1,
+      "price": 11.7
+    }
+  ]
+}

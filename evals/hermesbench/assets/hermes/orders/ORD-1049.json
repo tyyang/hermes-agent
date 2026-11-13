@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1049",
+  "customer": "globex",
+  "status": "cancelled",
+  "items": [
+    {
+      "sku": "S16",
+      "qty": 4,
+      "price": 69.57
+    }
+  ]
+}

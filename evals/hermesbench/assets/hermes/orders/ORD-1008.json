@@ -1,0 +1,22 @@
+{
+  "id": "ORD-1008",
+  "customer": "initech",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S05",
+      "qty": 2,
+      "price": 76.43
+    },
+    {
+      "sku": "S03",
+      "qty": 4,
+      "price": 30.5
+    },
+    {
+      "sku": "S19",
+      "qty": 4,
+      "price": 70.08
+    }
+  ]
+}

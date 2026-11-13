@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1025",
+  "customer": "acme",
+  "status": "pending",
+  "items": [
+    {
+      "sku": "S29",
+      "qty": 1,
+      "price": 79.64
+    },
+    {
+      "sku": "S13",
+      "qty": 4,
+      "price": 86.59
+    }
+  ]
+}

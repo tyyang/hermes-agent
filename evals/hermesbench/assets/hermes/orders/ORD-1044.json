@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1044",
+  "customer": "acme",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S05",
+      "qty": 1,
+      "price": 22.04
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ORD-1031",
+  "customer": "initech",
+  "status": "shipped",
+  "items": [
+    {
+      "sku": "S17",
+      "qty": 3,
+      "price": 65.22
+    }
+  ]
+}

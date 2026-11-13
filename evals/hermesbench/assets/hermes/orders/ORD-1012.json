@@ -1,0 +1,17 @@
+{
+  "id": "ORD-1012",
+  "customer": "wayne",
+  "status": "pending",
+  "items": [
+    {
+      "sku": "S04",
+      "qty": 4,
+      "price": 44.44
+    },
+    {
+      "sku": "S22",
+      "qty": 2,
+      "price": 81.84
+    }
+  ]
+}
