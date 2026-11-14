@@ -68,7 +68,7 @@ hermes chat --query-file PROMPT --format stream-json --yolo --accept-hooks \
 - **`task_sanity` runs first.** If it scores 0, the run aborts, the same as PinchBench. Pass `--no-fail-fast` to override.
 
 - **No secrets left in results.** When a task finishes (including on timeout or error), the runner deletes `.env` and `auth.json` from the task's HERMES_HOME. It also replaces `api_key`/`token`/`secret` values in its `config.yaml` with `REDACTED`. Graders never read those files, so results stay re-gradable. To keep the files for debugging, set `HB_KEEP_SECRETS=1`.
-- **Dependency runtime pruned after grading.** Each task's HERMES_HOME installs its own runtime (~1.2 GB). After the task is graded, the runner deletes `installs/`, `cache/uv` and `cache/pnpm` from it. The rest of `cache/` (terminal output, scratch files, images) is kept for inspection. To keep everything, pass `--keep-runtime`.
+- **Dependency runtime pruned before grading.** Each task's HERMES_HOME installs its own runtime (~1.2 GB). When the task ends (including on timeout or error), before grading, the runner deletes `installs/`, `cache/uv` and `cache/pnpm` from it. The rest of `cache/` (terminal output, scratch files, images) is kept for inspection, and graders that scan the whole home see task state rather than site-packages. To keep everything, pass `--keep-runtime`.
 
 ### Running against a custom OpenAI-compatible endpoint
 

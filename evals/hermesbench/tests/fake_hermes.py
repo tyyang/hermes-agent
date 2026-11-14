@@ -9,6 +9,11 @@ from pathlib import Path
 
 args = sys.argv[1:]
 if args and args[0] == "gateway":  # the runner ensures/stops a per-home gateway around each task
+    if args[1:2] == ["ensure"]:  # like real Hermes, lay down a per-home dependency runtime + a task-output spill
+        home = Path(os.environ["HERMES_HOME"])
+        for rel in ("installs/env/bin/python", "cache/uv/wheel", "cache/terminal-output/out-1.log"):
+            (home / rel).parent.mkdir(parents=True, exist_ok=True)
+            (home / rel).write_text("x")
     sys.exit(0)
 assert args[0] == "chat", args
 opt = lambda k: args[args.index(k) + 1] if k in args else None

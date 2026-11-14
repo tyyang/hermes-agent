@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 
 from golden import SOLVERS, TRAPS  # noqa: E402
 from lib_grading import grade_automated  # noqa: E402
-from lib_hermes import prepare_hermes_home, prepare_workspace, prune_hermes_home  # noqa: E402
+from lib_hermes import execute_task, prepare_hermes_home, prepare_workspace, prune_hermes_home  # noqa: E402
 from lib_tasks import TaskLoader  # noqa: E402
 
 EMPTY_MAX = 0.35  # an agent that does nothing must not pass
@@ -62,10 +62,25 @@ def check_prune() -> int:
     return int(bool(bad))
 
 
+def check_prune_before_grading(tasks) -> int:
+    """execute_task hands graders a home without the dependency runtime, so whole-home scans see task state."""
+    task = next(t for t in tasks if t.task_id == "task_sanity")
+    fake = f"{sys.executable} {ROOT / 'tests' / 'fake_hermes.py'}"
+    with tempfile.TemporaryDirectory() as d:
+        ex = execute_task(task, run_dir=Path(d) / "run1", hermes_cmd=fake, model="fake", provider=None,
+                          template_home=None)
+        home = Path(ex["hermes_home"])
+        bad = [r for r in ("installs", "cache/uv") if (home / r).exists()]
+        bad += [r for r in ("cache/terminal-output/out-1.log",) if not (home / r).exists()]
+    print(f"{'FAIL' if bad else 'OK  '}  {'prune before grading':38s} {bad or ''}")
+    return int(bool(bad))
+
+
 def main() -> int:
     only = set(sys.argv[1:])
     tasks = [t for t in TaskLoader(ROOT / "tasks", ROOT / "assets").load_all() if not only or t.task_id in only]
-    failures = 0 if only else check_prune()
+    failures = 0 if only else check_prune() + check_prune_before_grading(
+        TaskLoader(ROOT / "tasks", ROOT / "assets").load_all())
     for t in tasks:
         if t.suite == "pinchbench":
             failures += check_pinchbench(t)

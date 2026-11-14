@@ -114,7 +114,8 @@ RUNTIME_DIRS = ("installs", "cache/uv", "cache/pnpm")
 
 
 def prune_hermes_home(home: Path) -> None:
-    """Drop the per-home dependency runtime (~1.2 GB/task) once grading has read the home.
+    """Drop the per-home dependency runtime (~1.2 GB/task) as soon as the task ends, before grading,
+    so secret-hygiene graders that walk the home scan task state instead of site-packages.
 
     Each task's fresh HERMES_HOME installs its own runtime under installs/ plus package caches
     under cache/uv and cache/pnpm; none is task state. The rest of cache/ (terminal-output,
@@ -241,7 +242,7 @@ def scrub_home_secrets(home: Path) -> None:
 def execute_task(task: Task, *, run_dir: Path, hermes_cmd: str, model: str,
                  provider: Optional[str], template_home: Optional[Path], timeout_multiplier: float = 1.0,
                  reasoning: Optional[str] = None, extra_config: Optional[Dict[str, Any]] = None,
-                 extra_env: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+                 extra_env: Optional[Dict[str, str]] = None, keep_runtime: bool = False) -> Dict[str, Any]:
     run_dir.mkdir(parents=True, exist_ok=True)
     assets_dir = task.assets_dir
     # PinchBench gws/github tasks talk to the local fws mock (npm i -g @juppytt/fws), exactly as upstream:
@@ -261,6 +262,8 @@ def execute_task(task: Task, *, run_dir: Path, hermes_cmd: str, model: str,
             stop_fws(fws_env)
         if os.environ.get("HB_KEEP_SECRETS") != "1":
             scrub_home_secrets(run_dir / "hermes_home")
+        if not keep_runtime:
+            prune_hermes_home(run_dir / "hermes_home")
 
 
 def _execute(task: Task, *, run_dir: Path, assets_dir: Path, hermes_cmd: str, model: str,
