@@ -25,6 +25,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -137,6 +138,44 @@ def prune_hermes_home(home: Path) -> None:
         if target.exists():
             left = sum(1 for _ in target.rglob("*"))
             logger.warning("could not fully prune %s: %d entries left", target, left)
+
+
+def _pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def ensure_gateway_stopped(home: Path, grace: float = 10.0) -> bool:
+    """True once no gateway runs from this home, so its runtime can be deleted safely.
+
+    `gateway stop` errors are not fatal to a task, and a task that raised may never have reached
+    it. The gateway records itself in <home>/gateway.pid (removed on a clean stop): SIGTERM, then
+    SIGKILL, a recorded gateway that is still alive. False if it survives both.
+    """
+    try:
+        rec = json.loads((home / "gateway.pid").read_text(encoding="utf-8"))
+        pid = int(rec["pid"])
+        if Path(rec.get("hermes_home", home)).resolve() != home.resolve():
+            return True  # another home's gateway (or a stale copy): not ours to kill
+    except (OSError, ValueError, KeyError, TypeError):
+        return True
+    for sig, wait in ((signal.SIGTERM, grace), (signal.SIGKILL, 5.0)):
+        if not _pid_alive(pid):
+            return True
+        logger.warning("gateway %d for %s survived `gateway stop`; sending %s", pid, home, sig.name)
+        try:
+            os.kill(pid, sig)
+        except OSError:
+            pass
+        deadline = time.time() + wait
+        while time.time() < deadline and _pid_alive(pid):
+            time.sleep(0.2)
+    return not _pid_alive(pid)
 
 
 def _chmod_and_retry(func: Any, path: str, _exc: Any) -> None:
@@ -289,8 +328,12 @@ def execute_task(task: Task, *, run_dir: Path, hermes_cmd: str, model: str,
             stop_fws(fws_env)
         if os.environ.get("HB_KEEP_SECRETS") != "1":
             scrub_home_secrets(run_dir / "hermes_home")
+        stopped = ensure_gateway_stopped(run_dir / "hermes_home")
         if not keep_runtime:
-            prune_hermes_home(run_dir / "hermes_home")
+            if stopped:
+                prune_hermes_home(run_dir / "hermes_home")
+            else:
+                logger.warning("%s: gateway still running; keeping its runtime", task.task_id)
 
 
 def _execute(task: Task, *, run_dir: Path, assets_dir: Path, hermes_cmd: str, model: str,
@@ -375,11 +418,11 @@ def _execute(task: Task, *, run_dir: Path, assets_dir: Path, hermes_cmd: str, mo
         if rc not in (0, None) and status == "success":
             status = "error"
     raw_log.close()
-    try:  # stop this task's gateway so it does not keep running/leaking
+    try:  # stop this task's gateway so it does not keep running/leaking; execute_task checks it is gone
         subprocess.run(shlex.split(hermes_cmd) + ["gateway", "stop"], env=env, cwd=workspace,
                        stdin=subprocess.DEVNULL, capture_output=True, timeout=60)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("%s: `gateway stop` failed: %s", task.task_id, exc)
     (run_dir / "transcript.json").write_text(json.dumps(transcript, ensure_ascii=False, indent=1), encoding="utf-8")
     return {"task_id": task.task_id, "status": status, "workspace": str(workspace), "hermes_home": str(home),
             "transcript": transcript, "sessions": session_results, "usage": usage, "tool_calls": tool_calls,

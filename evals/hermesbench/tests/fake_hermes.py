@@ -4,7 +4,7 @@
 Speaks the same JSONL protocol as hermes_cli/stream_json.py, keeps sessions in $HERMES_HOME so
 `--resume` works, and writes memory to $HERMES_HOME/memories like the real memory tool.
 """
-import json, os, sys, time, uuid
+import json, os, signal, subprocess, sys, time, uuid
 from pathlib import Path
 
 args = sys.argv[1:]
@@ -14,6 +14,19 @@ if args and args[0] == "gateway":  # the runner ensures/stops a per-home gateway
         for rel in ("installs/env/bin/python", "cache/uv/wheel", "cache/terminal-output/out-1.log"):
             (home / rel).parent.mkdir(parents=True, exist_ok=True)
             (home / rel).write_text("x")
+        # a stand-in gateway process, recorded the way the real one records itself
+        gw = subprocess.Popen(["sleep", "300"], start_new_session=True, stdin=subprocess.DEVNULL,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        (home / "gateway.pid").write_text(json.dumps({"pid": gw.pid, "kind": "hermes-gateway",
+                                                      "hermes_home": str(home)}))
+    elif args[1:2] == ["stop"] and not os.environ.get("FAKE_GATEWAY_STOP_FAILS"):
+        pidfile = Path(os.environ["HERMES_HOME"]) / "gateway.pid"
+        if pidfile.exists():
+            try:
+                os.kill(json.loads(pidfile.read_text())["pid"], signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            pidfile.unlink()
     sys.exit(0)
 assert args[0] == "chat", args
 opt = lambda k: args[args.index(k) + 1] if k in args else None

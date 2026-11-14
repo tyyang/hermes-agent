@@ -47,7 +47,7 @@ HermesBench v0.2 有兩個套件，合計 178 題：
 - **避免衝突**：複製 `.env` 時去掉 `TELEGRAM_`、`API_SERVER_`、`SLACK_`、`DISCORD_` 開頭的設定，避免和使用者自己的 gateway 搶用 bot token 或 port 8642。
 
 - **結果不留機密**：每題結束後（包括 timeout 或錯誤），runner 會刪除該題 HERMES_HOME 裡的 `.env` 和 `auth.json`，並把 `config.yaml` 中的 api_key、token、secret 值改成 `REDACTED`。grader 本來就不讀這些檔案，所以仍可重新評分。需要保留來除錯時，可設定 `HB_KEEP_SECRETS=1`。
-- **評分前移除依賴環境**：每題結束時（包括 timeout 或錯誤），在評分之前，runner 會刪除該題 HERMES_HOME 裡的 `installs/`、`cache/uv` 和 `cache/pnpm`（每題約 1.2 GB）。`cache/` 其餘內容（terminal 輸出、scratch、圖片）會保留供檢視；掃描整個 home 的 grader 因此只會看到任務狀態，不會被 site-packages 佔滿掃描額度。要全部保留時，可加 `--keep-runtime`。
+- **評分前移除依賴環境**：每題結束時（包括 timeout 或錯誤），在評分之前，runner 會刪除該題 HERMES_HOME 裡的 `installs/`、`cache/uv` 和 `cache/pnpm`（每題約 1.2 GB）。`cache/` 其餘內容（terminal 輸出、scratch、圖片）會保留供檢視；掃描整個 home 的 grader 因此只會看到任務狀態，不會被 site-packages 佔滿掃描額度。刪除前會依 `gateway.pid` 確認該題的 gateway 已停止；`gateway stop` 沒停掉時，runner 會先送 SIGTERM，再送 SIGKILL，仍停不掉就保留 runtime 並記錄警告。要全部保留時，可加 `--keep-runtime`。
 
 自訂 OpenAI-compatible 端點的用法：
 
