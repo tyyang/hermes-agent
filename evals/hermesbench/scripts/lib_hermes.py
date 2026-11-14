@@ -110,14 +110,15 @@ def prepare_hermes_home(task: Task, run_dir: Path, assets_dir: Path, template: O
     return home
 
 
-RUNTIME_DIRS = ("installs", "cache")
+RUNTIME_DIRS = ("installs", "cache/uv", "cache/pnpm")
 
 
 def prune_hermes_home(home: Path) -> None:
     """Drop the per-home dependency runtime (~1.2 GB/task) once grading has read the home.
 
-    Each task's fresh HERMES_HOME installs its own runtime under installs/ and a uv cache under
-    cache/; neither is task state, so graders and later inspection only need what remains.
+    Each task's fresh HERMES_HOME installs its own runtime under installs/ plus package caches
+    under cache/uv and cache/pnpm; none is task state. The rest of cache/ (terminal-output,
+    scratch, images, blocked-scripts, ...) holds what the agent produced, so it is kept.
     """
     for name in RUNTIME_DIRS:
         shutil.rmtree(home / name, ignore_errors=True)

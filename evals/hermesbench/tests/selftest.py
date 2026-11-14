@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 
 from golden import SOLVERS, TRAPS  # noqa: E402
 from lib_grading import grade_automated  # noqa: E402
-from lib_hermes import prepare_hermes_home, prepare_workspace  # noqa: E402
+from lib_hermes import prepare_hermes_home, prepare_workspace, prune_hermes_home  # noqa: E402
 from lib_tasks import TaskLoader  # noqa: E402
 
 EMPTY_MAX = 0.35  # an agent that does nothing must not pass
@@ -46,10 +46,26 @@ def check_pinchbench(t) -> int:
     return int(bad)
 
 
+def check_prune() -> int:
+    """prune_hermes_home drops only the dependency runtime; task output under cache/ survives."""
+    with tempfile.TemporaryDirectory() as d:
+        home = Path(d)
+        gone = ["installs/env/bin/python", "cache/uv/wheel", "cache/pnpm/store"]
+        kept = ["cache/terminal-output/out-1.log", "cache/scratch/a.txt", "cache/images/x.png",
+                "memories/MEMORY.md", "skills/s/SKILL.md", "config.yaml"]
+        for rel in gone + kept:
+            (home / rel).parent.mkdir(parents=True, exist_ok=True)
+            (home / rel).write_text("x")
+        prune_hermes_home(home)
+        bad = [r for r in gone if (home / r).exists()] + [r for r in kept if not (home / r).exists()]
+    print(f"{'FAIL' if bad else 'OK  '}  {'prune_hermes_home':38s} {bad or ''}")
+    return int(bool(bad))
+
+
 def main() -> int:
     only = set(sys.argv[1:])
     tasks = [t for t in TaskLoader(ROOT / "tasks", ROOT / "assets").load_all() if not only or t.task_id in only]
-    failures = 0
+    failures = 0 if only else check_prune()
     for t in tasks:
         if t.suite == "pinchbench":
             failures += check_pinchbench(t)
