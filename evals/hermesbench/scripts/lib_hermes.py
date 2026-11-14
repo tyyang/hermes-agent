@@ -25,7 +25,9 @@ import os
 import re
 import shlex
 import shutil
+import stat
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -120,9 +122,34 @@ def prune_hermes_home(home: Path) -> None:
     Each task's fresh HERMES_HOME installs its own runtime under installs/ plus package caches
     under cache/uv and cache/pnpm; none is task state. The rest of cache/ (terminal-output,
     scratch, images, blocked-scripts, ...) holds what the agent produced, so it is kept.
+
+    Read-only entries (Go module cache, pnpm store) are made writable and retried; whatever still
+    cannot be removed is logged, so a run that is filling the disk again does not do it silently.
     """
     for name in RUNTIME_DIRS:
-        shutil.rmtree(home / name, ignore_errors=True)
+        target = home / name
+        if not target.exists():
+            continue
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(target, onexc=_chmod_and_retry)
+        else:
+            shutil.rmtree(target, onerror=_chmod_and_retry)
+        if target.exists():
+            left = sum(1 for _ in target.rglob("*"))
+            logger.warning("could not fully prune %s: %d entries left", target, left)
+
+
+def _chmod_and_retry(func: Any, path: str, _exc: Any) -> None:
+    """rmtree error hook: unlinking needs a writable parent, listing needs a readable dir."""
+    try:
+        os.chmod(os.path.dirname(path), stat.S_IRWXU)
+        if os.path.isdir(path) and not os.path.islink(path):
+            os.chmod(path, stat.S_IRWXU)
+            shutil.rmtree(path, ignore_errors=True)
+        else:
+            func(path)
+    except OSError:
+        pass  # prune_hermes_home reports what is left
 
 
 class StreamParser:

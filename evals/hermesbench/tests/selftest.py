@@ -56,6 +56,8 @@ def check_prune() -> int:
         for rel in gone + kept:
             (home / rel).parent.mkdir(parents=True, exist_ok=True)
             (home / rel).write_text("x")
+        for ro in ("installs/env/bin", "installs/env"):  # read-only like a Go module cache
+            (home / ro).chmod(0o555)
         prune_hermes_home(home)
         bad = [r for r in gone if (home / r).exists()] + [r for r in kept if not (home / r).exists()]
     print(f"{'FAIL' if bad else 'OK  '}  {'prune_hermes_home':38s} {bad or ''}")
